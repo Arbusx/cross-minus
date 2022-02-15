@@ -1,16 +1,211 @@
+
+
 [
 	{
-		words: [
-			{word:'слово', quantity:'ед', case:'и', gender:'ср'},
-			{word:'слова', quantity:'ед', case:'р', gender:'ср'},
+		group: [
+			{
+				words: [
+					{word:'мычащий', case:'и'},
+					{word:'мычащего', case:'р'},
+					{word:'мычащему', case:'д'},
+					{word:'мычащего', case:'в'},
+					{word:'мычащий', case:'в'},
+					{word:'мычащим', case:'т'},
+					{word:'мычащем', case:'п'}
+				],
+				gender: 'м',
+				quantity: 'ед'
+			},
+			{
+				words: [
+					{word:'мычащая', case:'и'},
+					{word:'мычащей', case:'р'},
+					{word:'мычащей', case:'д'},
+					{word:'мычащую', case:'в'},
+					{word:'мычащею', case:'т'},
+					{word:'мычащей', case:'т'},
+					{word:'мычащей', case:'п'}
+				],
+				gender: 'ж',
+				quantity: 'ед'
+			},
+			{
+				words: [
+					{word:'мычащие', case:'и'},
+					{word:'мычащих', case:'р'},
+					{word:'мычащим', case:'д'},
+					{word:'мычащие', case:'в'},
+					{word:'мычащих', case:'в'},
+					{word:'мычащими', case:'т'},
+					{word:'мычащих', case:'п'}
+				],
+				quantity: 'мн'
+			}
 		],
 		type: 'сущ'
 	},
 	{
-		words: [
-			{word:'выкармливавший', quantity:'ед', case:'и', gender:'мж'},
-			{word:'выкармливавшего', quantity:'ед', case:'р', gender:'мж'},
+		group: [
+			{
+				words: [
+					{word:'мычать', quantity:'и'}
+				]
+			},
+			{
+				words: [
+					{word:'мычал', quantity:'ед', gender:'м'},
+					{word:'мычала', quantity:'ед', gender:'ж'},
+					{word:'мычало', quantity:'ед', gender:'с'},
+					{word:'мычали', quantity:'мн'}
+				]
+			},
+			{
+				words: [
+					{word:'мычат', quantity:'мн'},
+					{word:'мычу', quantity:'ед'},
+					{word:'мычишь', quantity:'ед'},
+					{word:'мычит', quantity:'ед'},
+					{word:'мычим', quantity:'мн'},
+					{word:'мычите', quantity:'мн'}
+				]
+			}
 		],
-		type: 'сущ'
+		type: 'гл'
 	},
+	{
+		group: [
+			{
+				words: [
+					{word:'подшейный', case:'и'},
+					{word:'подшейного', case:'р'},
+					{word:'подшейному', case:'д'},
+					{word:'подшейного', case:'в'},
+					{word:'подшейный', case:'в'},
+					{word:'подшейным', case:'т'},
+					{word:'подшейном', case:'п'}
+				],
+				gender: 'м',
+				quantity: 'ед'
+			},
+			{
+				words: [
+					{word:'подшейные', case:'и'},
+					{word:'подшейных', case:'р'},
+					{word:'подшейным', case:'д'},
+					{word:'подшейные', case:'в'},
+					{word:'подшейных', case:'в'},
+					{word:'подшейными', case:'т'},
+					{word:'подшейных', case:'п'}
+				],
+				quantity: 'мн'
+			}
+		],
+		type: 'прл'
+	},
+	{
+		group: [
+			{
+				words: [
+					{word:'потемнявший', case:'и'},
+					{word:'потемнявшего', case:'р'},
+					{word:'потемнявшему', case:'д'},
+					{word:'потемнявшего', case:'в'},
+					{word:'потемнявший', case:'в'},
+					{word:'потемнявшим', case:'т'},
+					{word:'потемнявшем', case:'п'}
+				],
+				gender: 'м',
+				quantity: 'ед'
+			},
+			{
+				words: [
+					{word:'потемнявшие', case:'и'},
+					{word:'потемнявших', case:'р'},
+					{word:'потемнявшим', case:'д'},
+					{word:'потемнявшие', case:'в'},
+					{word:'потемнявших', case:'в'},
+					{word:'потемнявшими', case:'т'},
+					{word:'потемнявших', case:'п'}
+				],
+				quantity: 'мн'
+			},
+			{
+				words: [
+					{word:'потемняемый', case:'и'},
+					{word:'потемняемого', case:'р'},
+					{word:'потемняемому', case:'д'},
+					{word:'потемняемого', case:'в'},
+					{word:'потемняемый', case:'в'},
+					{word:'потемняемым', case:'т'},
+					{word:'потемняемом', case:'п'}
+				],
+				gender: 'м',
+				quantity: 'ед'
+			},
+			{
+				words: [
+					{word:'потемняемые', case:'и'},
+					{word:'потемняемых', case:'р'},
+					{word:'потемняемым', case:'д'},
+					{word:'потемняемые', case:'в'},
+					{word:'потемняемых', case:'в'},
+					{word:'потемняемыми', case:'т'},
+					{word:'потемняемых', case:'п'}
+				],
+				quantity: 'мн'
+			}
+		],
+		type: 'прч'
+	},
+	{
+		group: [
+			{
+				words: [
+					{word:'виртуозно'},
+					{word:'виртуознее'},
+					{word:'виртуозней'},
+					{word:'повиртуознее'},
+					{word:'повиртуозней'}
+				]
+			}
+		],
+		type: 'нар'
+	}
 ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
