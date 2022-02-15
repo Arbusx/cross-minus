@@ -1,0 +1,16 @@
+[
+	{
+		words: [
+			{word:'слово', quantity:'ед', case:'и', gender:'ср'},
+			{word:'слова', quantity:'ед', case:'р', gender:'ср'},
+		],
+		type: 'сущ'
+	},
+	{
+		words: [
+			{word:'выкармливавший', quantity:'ед', case:'и', gender:'мж'},
+			{word:'выкармливавшего', quantity:'ед', case:'р', gender:'мж'},
+		],
+		type: 'сущ'
+	},
+]

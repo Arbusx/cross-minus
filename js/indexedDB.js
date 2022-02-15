@@ -49,19 +49,20 @@ class DBTable {
 	}
 
 	// Добавить (передавать массив)
-	add(array) {
+	add(array, num='') {
 		return new Promise((resolve, reject) => {
 			console.log("DB > add");
 			let transaction = this.db.transaction([this.tableName], "readwrite");
 			let store = transaction.objectStore(this.tableName);
 			for (let item of array) { store.put(item); }
 			transaction.oncomplete = e => {
-				console.log("   > add > success!");
-				resolve();
+				console.log("   > add "+num+"> success!");
+				resolve(true);
 			};
 			transaction.onerror = e => {
-				console.log("   > add > error!");
-				reject(transaction.error);
+				console.log("   > add "+num+"> error!");
+				// reject(transaction.error);
+				reject(false);
 			};
 		});
 	}
@@ -86,7 +87,7 @@ class DBTable {
 	getRange(filter_start, filter_end=false) {
 		filter_end = (filter_end === false) ? filter_start : filter_end;
 		return new Promise((resolve, reject) => {
-			console.log("DB > getRange");
+			// console.log("DB > getRange");
 			let x = [];
 			let transaction = this.db.transaction([this.tableName], "readonly");
 			let request = transaction.objectStore(this.tableName);
@@ -100,23 +101,6 @@ class DBTable {
 					cursor.continue();
 				}
 				resolve(x);
-			};
-		});
-	}
-
-	// Получить все записи страницы/категории из одной таблицы
-	get getAll() {
-		return new Promise((resolve, reject) => {
-			console.log("DB > getAll");
-			let transaction = this.db.transaction([this.tableName], "readonly");
-			let request = transaction.objectStore(this.tableName).getAll();
-			transaction.oncomplete = e => {
-				console.log("   > getAll > success!");
-				resolve(request.result);
-			};
-			transaction.onerror = e => {
-				console.log("   > getAll > error!");
-				reject(transaction.error);
 			};
 		});
 	}
