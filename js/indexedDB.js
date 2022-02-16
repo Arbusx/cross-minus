@@ -26,7 +26,7 @@ class DB {
 		});
 	}
 	// Удалить БД
-	static delDB(dbName) {
+	static delDB(dbName = 'DB') {
 		return new Promise((resolve, reject) => {
 			console.log("DB > delDB");
 			let request = indexedDB.deleteDatabase(dbName);

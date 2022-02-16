@@ -65,8 +65,8 @@ async function createFirstFormWords() {
 			let words = memory['frazy'][j][i];
 			if (typeof words == 'undefined') { continue; }
 			for (let k=0; k<words.length; k++) {
-				let x = await table.getRange(words[k]);
-				x = (x.length == 0) ? words[k] : x[0][0];
+				let x = await table.getRange(words[k].toLowerCase());
+				x = (x.length == 0) ? words[k].toLowerCase() : x[0][0];
 				memory['frazy'][j][i][k] = x;
 			}
 		}
@@ -182,79 +182,19 @@ async function handleDownloadDictionary() {
 }
 
 
-function saved(con, name='_10') {
-	con = con.join('\r\n\r\n');
-	console.log(con);
-	let bl = new Blob([con], {type: "text/plain"});
-	let a = document.createElement("a");
-	a.href = URL.createObjectURL(bl);
-	a.download = name+".txt";
-	a.hidden = true;
-	document.body.appendChild(a);
-	a.click();
-}
-
-
-function removeDuplicates(arr) {
-	const result = [];
-	const duplicatesIndices = [];
-	arr.forEach((current, index) => {
-		if (duplicatesIndices.includes(index)) return;
-		result.push(current);
-		for (let comparisonIndex = index + 1; comparisonIndex < arr.length; comparisonIndex++) {
-			const comparison = arr[comparisonIndex];
-			const currentKeys = Object.keys(current);
-			const comparisonKeys = Object.keys(comparison);
-			if (currentKeys.length !== comparisonKeys.length) continue;
-			const currentKeysString = currentKeys.sort().join("").toLowerCase();
-			const comparisonKeysString = comparisonKeys.sort().join("").toLowerCase();
-			if (currentKeysString !== comparisonKeysString) continue;
-			let valuesEqual = true;
-			for (let i = 0; i < currentKeys.length; i++) {
-				const key = currentKeys[i];
-				if ( current[key] !== comparison[key] ) {
-					valuesEqual = false;
-					break;
-				}
-			}
-			if (valuesEqual) duplicatesIndices.push(comparisonIndex);
-		}
-	});
-	return result;
-}
-
-async function doubleFunction() {
-	await fetch('https://cross-minus.localhost/files/10.txt', { headers: { 'Content-Type':'text/plain; charset=utf-8' } })
-		.then( response => response.text() )
-		.then( text => {
-			text = text.split('\r\n');
-			let arr = [];
-			let arr_small = [];
-			for (let i=0; i<text.length; i++) {
-				if (text[i].length == 0) {
-					if (arr_small.length != 0) {
-						arr_small = removeDuplicates(arr_small);
-						arr_small = arr_small.join('\r\n');
-						arr.push(arr_small);
-						arr_small = [];
-					}
-					continue;
-				}
-				arr_small.push(text[i]);
-				if (i == text.length-1) {
-					arr_small = removeDuplicates(arr_small);
-					arr_small = arr_small.join('\r\n');
-					arr.push(arr_small);
-				}
-			}
-			saved(arr);
-		});
+async function handleDeleteDictionary() {
+	document.getElementById('upload').disabled = true;
+	document.getElementById('dictionary').disabled = true;
+	document.getElementById('delete_dictionary').disabled = true;
+	if (new DBTable(await DB.delDB(), 'abc')) {
+		window.location.reload();
+	}
 }
 
 
 document.getElementById('upload').onchange = handleFileSelect;
 document.getElementById('dictionary').onclick = handleDownloadDictionary;
-document.getElementById('double').onclick = doubleFunction;
+document.getElementById('delete_dictionary').onclick = handleDeleteDictionary;
 
 
 
