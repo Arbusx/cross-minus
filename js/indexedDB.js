@@ -51,16 +51,16 @@ class DBTable {
 	// Добавить (передавать массив)
 	add(array, num='') {
 		return new Promise((resolve, reject) => {
-			console.log("DB > add");
+			// console.log("DB > add");
 			let transaction = this.db.transaction([this.tableName], "readwrite");
 			let store = transaction.objectStore(this.tableName);
 			for (let item of array) { store.put(item); }
 			transaction.oncomplete = e => {
-				console.log("   > add "+num+"> success!");
+				// console.log("   > add "+num+"> success!");
 				resolve(true);
 			};
 			transaction.onerror = e => {
-				console.log("   > add "+num+"> error!");
+				// console.log("   > add "+num+"> error!");
 				// reject(transaction.error);
 				reject(false);
 			};

@@ -2,6 +2,8 @@
 
 var time; // Время выполнения загрузки и установки всей библиотеки
 var time_part = null; // Время загрузки и установки каждой из частей
+var count_files = 10;
+var progress = document.getElementById('progress').max;
 
 var indexedDB = ('indexedDB' in window) ? (window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB) : null;
 
@@ -29,7 +31,7 @@ function excelToJSON() {
 				createArray();
 				await createFirstFormWords();
 				console.log(memory['frazy']);
-				createArrayMinus();
+				// createArrayMinus();
 			})();
 		};
 		reader.onerror = function(ex) {
@@ -111,9 +113,13 @@ function createArray() {
 
 
 async function loadFileLoop(table, num) {
-	document.getElementById('progress').value = num;
-	if (num > 15) {
-		document.getElementById('progress').value = num;
+	let el_prog = progress/count_files*(num-1);
+	let el_perc = 100/count_files*(num-1);
+	document.getElementById('progress').value = el_prog;
+	document.getElementById('progress_percent').innerText = el_perc.toFixed(2)+'%';
+	if (num > count_files) {
+		document.getElementById('progress').value = progress;
+		document.getElementById('progress_percent').innerText = '100%';
 		return false;
 	}
 	if (time_part != null) {
@@ -121,7 +127,7 @@ async function loadFileLoop(table, num) {
 		console.log('Время выполнения '+num+' = ', time_part);
 	}
 	time_part = performance.now();
-	await fetch('https://cross-minus.localhost/files_test/'+num+'.txt', { headers: { 'Content-Type':'text/plain; charset=utf-8' } })
+	await fetch('https://cross-minus.localhost/files/'+num+'.txt', { headers: { 'Content-Type':'text/plain; charset=utf-8' } })
 		.then( response => response.text() )
 		.then( text => {
 			(async () => {
@@ -130,23 +136,30 @@ async function loadFileLoop(table, num) {
 				let arr = [];
 				let arr_small = [];
 				for (let i=0; i<text.length; i++) {
-					if (text[i][0] != ' ') {
+					if (text[i].length == 0) {
 						if (arr_small.length != 0) {
 							arr.push({'words':arr_small});
 							arr_small = [];
 						}
-						arr_small.push(text[i]);
-					} else { arr_small.push(text[i].trim()); }
+						continue;
+					}
+					arr_small.push(text[i]);
 					if (i == text.length-1) {arr.push({'words':arr_small}); }
 				}
-				console.log('Создал массив');
-				if (await table.add(arr, num+' ') === true) {
-					console.log('Записал в БД');
-					if (await loadFileLoop(table, num+1) == false) {
-						console.log('Словарь скачался полностью');
-						document.getElementById('upload').disabled = false;
-						time = performance.now() - time;
-						console.log('Время выполнения = ', time);
+				console.log('Создал массив', arr.length);
+				let prog = progress/count_files/arr.length;
+				let percent = 100/count_files/arr.length;
+				for (let k=0; k<arr.length; k++) {
+					document.getElementById('progress').value = el_prog+prog*(k+1);
+					document.getElementById('progress_percent').innerText = (el_perc+percent*(k+1)).toFixed(2)+'%';
+					await table.add([arr[k]], num+' ');
+					if (k == arr.length-1) {
+						if (await loadFileLoop(table, num+1) == false) {
+							console.log('Словарь скачался полностью');
+							document.getElementById('upload').disabled = false;
+							time = (performance.now() - time) / 1000;
+							console.log('Время выполнения = ', time);
+						}
 					}
 				}
 			})();
@@ -163,15 +176,85 @@ function handleFileSelect(e) {
 
 async function handleDownloadDictionary() {
 	// let x = await table.getRange('слив');
-	// console.log(x);
 	time = performance.now();
-	await loadFileLoop(table, 1);
+	// console.log(x);
+	await loadFileLoop(new DBTable(await DB.open(), 'abc'), 1);
 }
 
+
+function saved(con, name='_10') {
+	con = con.join('\r\n\r\n');
+	console.log(con);
+	let bl = new Blob([con], {type: "text/plain"});
+	let a = document.createElement("a");
+	a.href = URL.createObjectURL(bl);
+	a.download = name+".txt";
+	a.hidden = true;
+	document.body.appendChild(a);
+	a.click();
+}
+
+
+function removeDuplicates(arr) {
+	const result = [];
+	const duplicatesIndices = [];
+	arr.forEach((current, index) => {
+		if (duplicatesIndices.includes(index)) return;
+		result.push(current);
+		for (let comparisonIndex = index + 1; comparisonIndex < arr.length; comparisonIndex++) {
+			const comparison = arr[comparisonIndex];
+			const currentKeys = Object.keys(current);
+			const comparisonKeys = Object.keys(comparison);
+			if (currentKeys.length !== comparisonKeys.length) continue;
+			const currentKeysString = currentKeys.sort().join("").toLowerCase();
+			const comparisonKeysString = comparisonKeys.sort().join("").toLowerCase();
+			if (currentKeysString !== comparisonKeysString) continue;
+			let valuesEqual = true;
+			for (let i = 0; i < currentKeys.length; i++) {
+				const key = currentKeys[i];
+				if ( current[key] !== comparison[key] ) {
+					valuesEqual = false;
+					break;
+				}
+			}
+			if (valuesEqual) duplicatesIndices.push(comparisonIndex);
+		}
+	});
+	return result;
+}
+
+async function doubleFunction() {
+	await fetch('https://cross-minus.localhost/files/10.txt', { headers: { 'Content-Type':'text/plain; charset=utf-8' } })
+		.then( response => response.text() )
+		.then( text => {
+			text = text.split('\r\n');
+			let arr = [];
+			let arr_small = [];
+			for (let i=0; i<text.length; i++) {
+				if (text[i].length == 0) {
+					if (arr_small.length != 0) {
+						arr_small = removeDuplicates(arr_small);
+						arr_small = arr_small.join('\r\n');
+						arr.push(arr_small);
+						arr_small = [];
+					}
+					continue;
+				}
+				arr_small.push(text[i]);
+				if (i == text.length-1) {
+					arr_small = removeDuplicates(arr_small);
+					arr_small = arr_small.join('\r\n');
+					arr.push(arr_small);
+				}
+			}
+			saved(arr);
+		});
+}
 
 
 document.getElementById('upload').onchange = handleFileSelect;
 document.getElementById('dictionary').onclick = handleDownloadDictionary;
+document.getElementById('double').onclick = doubleFunction;
 
 
 
@@ -179,8 +262,13 @@ document.getElementById('dictionary').onclick = handleDownloadDictionary;
 	document.getElementById('dictionary').disabled = true;
 
 	let table = new DBTable(await DB.open(), 'abc');
+	// await table.add(array_test);
 
-	if (typeof await table.getOne(10) != 'undefined') {
+	let x = await table.getRange('абаканской');
+	console.log('test', x);
+
+
+	if (typeof await table.getOne(175500) != 'undefined') {
 		console.log('Есть таблица. Можно продолжить работу');
 		document.getElementById('upload').disabled = false;
 	} else {
