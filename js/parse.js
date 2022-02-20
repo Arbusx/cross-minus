@@ -13,7 +13,8 @@ var memory = {
 	'ws': [], // массив с данными xslx
 	'sheets': [], // тут будет соответствие имени листа и номер массива
 	'group': [], // имя группы
-	'frazy': [], // массивы фрах по группам
+	'frazy': [], // массивы фраз по группам
+	'minus': [], // массивы минус-слов по группам
 };
 
 
@@ -30,8 +31,8 @@ function excelToJSON() {
 				}
 				createArray();
 				await createFirstFormWords();
-				console.log(memory['frazy']);
-				// createArrayMinus();
+				console.log('-------------------------------');
+				createArrayMinus();
 			})();
 		};
 		reader.onerror = function(ex) {
@@ -42,46 +43,20 @@ function excelToJSON() {
 }
 
 
-function createArrayMinus() {
-	// перебираем листы
-	for (let j=0; j<memory['frazy'].length; j++) {
-		let sheet = memory['frazy'][j];
-		// перебираем группы
-		for (let i=0; i<sheet.length; i++) {
-			let group = sheet[i];
-			// перебираем фразы
-			for (let k=0; k<group.length; k++) {
-				let words = group[k];
-			}
-		}
-	}
-}
-
-
-async function createFirstFormWords() {
-	let table = new DBTable(await DB.open(), 'abc');
-	for (let j=0; j<memory['frazy'].length; j++) {
-		for (let i=0; i<memory['frazy'][j].length; i++) {
-			let words = memory['frazy'][j][i];
-			if (typeof words == 'undefined') { continue; }
-			for (let k=0; k<words.length; k++) {
-				let x = await table.getRange(words[k].toLowerCase());
-				x = (x.length == 0) ? words[k].toLowerCase() : x[0][0];
-				memory['frazy'][j][i][k] = x;
-			}
-		}
-	}
-}
-
-
 function createArray() {
 	console.log(memory['sheets']);
+	// Перебираем листы
 	for (let i=0; i<memory['ws'].length; i++) {
-		let arrTmp_small = [];
-		let arrTmp_group = [];
-		for (let j=0; j<memory['ws'][i].length; j++) {
-			let line = memory['ws'][i][j];
-			let arrTmp_words = undefined;
+		console.log('ЛИСТ', i);
+		let sheet = memory['ws'][i];
+		let arrTmp_group = []; // Массив имён группы
+		let arrTmp_big = []; // Массив для группы фраз
+		let arrTmp_small = []; // Промежуточный массив для фраз
+
+		// Перебираем все строки в листе, делим на группы
+		for (let j=0; j<sheet.length; j++) {
+			let line = sheet[j]; // Первый и второй элемент строки
+			let arrTmp_words = undefined; // Будущий массив слов в строке
 			if (typeof line[1] != 'undefined') {
 				arrTmp_words = line[1].split(' ');
 				// Удаляем слово, если предлог или число
@@ -92,23 +67,99 @@ function createArray() {
 					}
 				});
 			}
-			if (line.length == 0) { arrTmp_small.push(arrTmp_words); }
+			// Если есть название группы
 			if (line[0] != null) {
 				arrTmp_group.push(line[0]);
 				if (arrTmp_small.length != 0) {
-					memory['frazy'].push(arrTmp_small);
+					arrTmp_big.push(arrTmp_small);
 					arrTmp_small = [];
 				}
 			}
 			arrTmp_small.push(arrTmp_words);
-			if (j == memory['ws'][i].length-1) {
-				memory['frazy'].push(arrTmp_small);
+			// Если конец листа
+			if (j == sheet.length-1) {
+				if (arrTmp_small.length != 0) {
+					arrTmp_big.push(arrTmp_small);
+				}
 				memory['group'].push(arrTmp_group);
 			}
 		}
+		memory['frazy'][i] = arrTmp_big;
 	}
+	console.log('перебор1');
 	console.log(memory['group']);
 	console.log(memory['frazy']);
+	console.log('перебор2');
+	for (let i=0; i<memory['frazy'].length; i++) {
+		console.log(memory['frazy'][i]);
+	}
+}
+
+
+async function createFirstFormWords() {
+	let table = new DBTable(await DB.open(), 'abc');
+	for (let s=0; s<memory['frazy'].length; s++) {
+		let sheet = memory['frazy'][s];
+		for (let g=0; g<sheet.length; g++) {
+			let group = sheet[g];
+			for (let w=0; w<group.length; w++) {
+				let words = group[w];
+				if (typeof words == 'undefined') { continue; }
+				for (let k=0; k<words.length; k++) {
+					if (typeof words[k] == 'undefined') { continue; }
+					let x = await table.getRange(words[k].toLowerCase());
+					x = (x.length == 0) ? words[k].toLowerCase() : x[0][0];
+					memory['frazy'][s][g][w][k] = x;
+				}
+
+			}
+		}
+	}
+}
+
+
+function createArrayMinus() {
+	// перебираем листы
+	for (let s=0; s<memory['frazy'].length; s++) {
+		let sheet = memory['frazy'][s];
+		// перебираем группы
+		for (let g=0; g<sheet.length; g++) {
+			let group = sheet[g];
+			// перебираем фразы
+			for (let w=0; w<group.length; w++) {
+				let words = group[w];
+
+
+				// перебираем листы
+				for (let ss=0; ss<memory['frazy'].length; ss++) {
+					let sheet2 = memory['frazy'][ss];
+					// перебираем группы
+					for (let gg=0; gg<sheet2.length; gg++) {
+
+						// Если группы совпадают, значит пропускаем
+						if (gg == g) { continue; }
+
+						let group2 = sheet2[gg];
+						// перебираем фразы
+						for (let ww=0; ww<group2.length; ww++) {
+							let words2 = group2[ww];
+
+							// Сравниваем количество элементов в массиве. Должно быть +1
+							if (typeof words == 'undefined' || typeof words2 == 'undefined') { continue; }
+							if (words.length != words2.length+1) { continue; }
+							console.log('Смотрим дальше');
+
+							let a = ['aa', 'bb'];
+							let v = a.slice(0); // копируем значения переменной, а не ссылку на переменную
+
+						}
+					}
+				}
+
+
+			}
+		}
+	}
 }
 
 
@@ -163,6 +214,10 @@ async function loadFileLoop(table, num) {
 					}
 				}
 			})();
+		})
+		.catch(e => {
+			console.log('Обязательно перейдите на защищённую версию сайта. https://');
+			location.href = location.href.replace("http://", "https://");
 		});
 }
 
