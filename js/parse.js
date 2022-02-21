@@ -59,9 +59,9 @@ function createArray() {
 			let arrTmp_words = undefined; // Будущий массив слов в строке
 			if (typeof line[1] != 'undefined') {
 				arrTmp_words = line[1].split(' ');
-				// Удаляем слово, если предлог или число
+				// Удаляем слово, если предлог или число или одна буква
 				arrTmp_words = arrTmp_words.filter(function(f) {
-					if (predlogy.indexOf(f) == -1) {
+					if (predlogy.indexOf(f) == -1 && f.length > 1) {
 						for (let q=0; q<f.length; q++) { if (!isNaN(f[q]-0)) { return false; } }
 						return true;
 					}
@@ -111,7 +111,8 @@ async function createFirstFormWords() {
 					x = (x.length == 0) ? words[k].toLowerCase() : x[0][0];
 					memory['frazy'][s][g][w][k] = x;
 				}
-
+				// Удалить дубликаты слов из фразы
+				memory['frazy'][s][g][w] = memory['frazy'][s][g][w].filter((item, index) => { return memory['frazy'][s][g][w].indexOf(item) === index; });
 			}
 		}
 	}
@@ -122,12 +123,15 @@ function createArrayMinus() {
 	// перебираем листы
 	for (let s=0; s<memory['frazy'].length; s++) {
 		let sheet = memory['frazy'][s];
+		memory['minus'][s] = [];
 		// перебираем группы
 		for (let g=0; g<sheet.length; g++) {
 			let group = sheet[g];
+			memory['minus'][s][g] = [];
 			// перебираем фразы
 			for (let w=0; w<group.length; w++) {
 				let words = group[w];
+				memory['minus'][s][g][w] = [];
 
 
 				// перебираем листы
@@ -146,20 +150,22 @@ function createArrayMinus() {
 
 							// Сравниваем количество элементов в массиве. Должно быть +1
 							if (typeof words == 'undefined' || typeof words2 == 'undefined') { continue; }
-							if (words.length != words2.length+1) { continue; }
-							console.log('Смотрим дальше');
-
-							let a = ['aa', 'bb'];
-							let v = a.slice(0); // копируем значения переменной, а не ссылку на переменную
-
+							if (words.length != words2.length-1) { continue; }
+							let newElem = getNewElementBetween(words, words2);
+							if (newElem !== false) {
+								memory['minus'][s][g][w].push(newElem);
+							}
 						}
 					}
 				}
 
+				// Удалить дубликаты слов из фразы
+				memory['minus'][s][g][w] = memory['minus'][s][g][w].filter((item, index) => { return memory['minus'][s][g][w].indexOf(item) === index; });
 
 			}
 		}
 	}
+	console.log(memory['minus']);
 }
 
 
@@ -222,10 +228,23 @@ async function loadFileLoop(table, num) {
 }
 
 
+function getNewElementBetween(what, where) {
+	let arrForReturn = [];
+	for (let i=0; i<where.length; i++) {
+		if (what.indexOf(where[i]) == -1) {
+			arrForReturn.push(where[i]);
+			if (arrForReturn.length > 1) { return false; }
+		}
+	}
+	return arrForReturn[0];
+}
+
+
 function handleFileSelect(e) {
-	let files = e.target.files; // FileList object
+	let el = e.target;
 	let xl2json = new excelToJSON();
-	xl2json.parseExcel(files[0]);
+	xl2json.parseExcel(el.files[0]);
+	el.value = '';
 }
 
 
