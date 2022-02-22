@@ -29,10 +29,19 @@ function excelToJSON() {
 					memory['sheets'].push(workbook.SheetNames[i]);
 					memory['ws'].push(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[i]], {header: 1}));
 				}
+				console.log('log - ws');
+				console.log(memory['ws']);
+				console.log('log - ws');
 				createArray();
 				await createFirstFormWords();
 				console.log('-------------------------------');
 				createArrayMinus();
+				minusToGroup();
+				addNewDataToWS();
+				deleteUndefined();
+				// convertArrayToObject();
+				saveXlsxFile();
+
 			})();
 		};
 		reader.onerror = function(ex) {
@@ -44,10 +53,11 @@ function excelToJSON() {
 
 
 function createArray() {
+	console.log('log - sheets');
 	console.log(memory['sheets']);
+	console.log('log - sheets');
 	// Перебираем листы
 	for (let i=0; i<memory['ws'].length; i++) {
-		console.log('ЛИСТ', i);
 		let sheet = memory['ws'][i];
 		let arrTmp_group = []; // Массив имён группы
 		let arrTmp_big = []; // Массив для группы фраз
@@ -86,13 +96,12 @@ function createArray() {
 		}
 		memory['frazy'][i] = arrTmp_big;
 	}
-	console.log('перебор1');
+	console.log('log - group');
 	console.log(memory['group']);
+	console.log('log - group');
+	console.log('log - frazy');
 	console.log(memory['frazy']);
-	console.log('перебор2');
-	for (let i=0; i<memory['frazy'].length; i++) {
-		console.log(memory['frazy'][i]);
-	}
+	console.log('log - frazy');
 }
 
 
@@ -141,7 +150,7 @@ function createArrayMinus() {
 					for (let gg=0; gg<sheet2.length; gg++) {
 
 						// Если группы совпадают, значит пропускаем
-						if (gg == g) { continue; }
+						if (gg == g) { break; }
 
 						let group2 = sheet2[gg];
 						// перебираем фразы
@@ -165,7 +174,120 @@ function createArrayMinus() {
 			}
 		}
 	}
+	console.log('log - minus');
 	console.log(memory['minus']);
+	console.log('log - minus');
+}
+
+
+function minusToGroup() {
+	// return;
+	let minus = memory['minus'];
+	let newMinus = [];
+	for (let s=0; s<minus.length; s++) {
+		let sheet = minus[s];
+		newMinus[s] = [];
+
+		for (let g=0; g<sheet.length; g++) {
+			let group = sheet[g];
+			let newGroup = [];
+			newMinus[s][g] = [];
+
+			for (let w=0; w<group.length; w++) {
+				let words = group[w];
+				newMinus[s][g][w] = [];
+
+				if (typeof memory['frazy'][s][g][w] != 'undefined') {
+					for (let k=0; k<memory['frazy'][s][g][w].length; k++) {
+						newGroup.push(memory['frazy'][s][g][w][k]);
+					}
+				}
+
+				if (typeof words == 'undefined') { continue; }
+
+				for (let k=0; k<words.length; k++) {
+					if (typeof words[k] != 'undefined') {
+						newMinus[s][g][0].push(words[k]);
+					}
+					// memory['minus'][s][g][w] = [];
+				}
+			}
+			newGroup = newGroup.filter((item, index) => { return newGroup.indexOf(item) === index; });
+			newMinus[s][g][0] = newMinus[s][g][0].filter((item, index) => { return newMinus[s][g][0].indexOf(item) === index; });
+			newMinus[s][g][0] = newMinus[s][g][0].filter(e => !~newGroup.indexOf(e));
+		}
+	}
+		memory['minus'] = newMinus;
+		// console.log(newMinus);
+		// console.log('log - minusToGroup');
+		// console.log(memory['minus']);
+		// console.log('log - minusToGroup');
+}
+
+
+function addNewDataToWS() {
+	let minus = memory['minus'];
+	for (let s=0; s<minus.length; s++) {
+		let i = 0;
+		let sheet = minus[s];
+
+		for (let g=0; g<sheet.length; g++) {
+			let group = sheet[g];
+
+			for (let w=0; w<group.length; w++) {
+				let words = group[w];
+				if (typeof words == 'undefined' || words.length == 0) { i++; continue; }
+				words = words.join(', ');
+				memory['ws'][s][i].splice(2, 0, words);
+				i++;
+			}
+		}
+
+	}
+	console.log('log - newDataWS');
+	console.log(memory['ws']);
+	console.log('log - newDataWS');
+}
+
+
+function deleteUndefined() {
+	for (let i=0; i<memory['ws'].length; i++) {
+		for (let j=0; j<memory['ws'][i].length; j++) {
+			for (let k=0; k<memory['ws'][i][j].length; k++) {
+				if (typeof memory['ws'][i][j][k] == 'undefined') {
+					memory['ws'][i][j][k] = '';
+				}
+			}
+		}
+	}
+}
+
+
+function convertArrayToObject() {
+	let ws = memory['ws'];
+	let newWS = [];
+
+	for (let s=0; s<ws.length; s++) {
+		newWS[s] = [];
+		for (let i=0; i<ws[s].length; i++) {
+			newWS[s].push({
+				'group': ws[s][i][0],
+				'words': ws[s][i][1],
+				'minus': ws[s][i][2]
+			});
+		}
+	}
+	memory['ws'] = newWS;
+}
+
+
+function saveXlsxFile() {
+	let newWorkbook = XLSX.utils.book_new();
+	for (let i=0; i<memory['sheets'].length; i++) {
+		let page = XLSX.utils.aoa_to_sheet(memory['ws'][i]);
+		XLSX.utils.book_append_sheet(newWorkbook, page, memory['sheets'][i]);
+	}
+	XLSX.writeFile(newWorkbook, 'file.xlsx');
 }
 
 
@@ -241,6 +363,7 @@ function getNewElementBetween(what, where) {
 
 
 function handleFileSelect(e) {
+	memory = { 'ws': [], 'sheets': [], 'group': [], 'frazy': [], 'minus': [] };
 	let el = e.target;
 	let xl2json = new excelToJSON();
 	xl2json.parseExcel(el.files[0]);
