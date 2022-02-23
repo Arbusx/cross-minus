@@ -306,7 +306,7 @@ async function loadFileLoop(table, num) {
 		console.log('Время выполнения '+num+' = ', time_part);
 	}
 	time_part = performance.now();
-	await fetch('https://cross-minus.localhost/files/'+num+'.txt', { headers: { 'Content-Type':'text/plain; charset=utf-8' } })
+	await fetch('files/'+num+'.txt', { headers: { 'Content-Type':'text/plain; charset=utf-8' } })
 		.then( response => response.text() )
 		.then( text => {
 			(async () => {
