@@ -336,6 +336,7 @@ async function loadFileLoop(table, num) {
 						if (await loadFileLoop(table, num+1) == false) {
 							console.log('Словарь скачался полностью');
 							document.getElementById('upload').disabled = false;
+							document.getElementById('dictionary').disabled = true;
 							time = (performance.now() - time) / 1000;
 							console.log('Время выполнения = ', time);
 						}
