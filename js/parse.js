@@ -311,7 +311,7 @@ async function loadFileLoop(table, num) {
 		.then( text => {
 			(async () => {
 				console.log('Получил file');
-				text = text.split('\n');
+				text = text.split('\r\n');
 				let arr = [];
 				let arr_small = [];
 				for (let i=0; i<text.length; i++) {
