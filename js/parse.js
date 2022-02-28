@@ -25,6 +25,8 @@ function excelToJSON() {
 			(async() => {
 				let data = e.target.result;
 				let workbook = XLSX.read(data, { type: 'binary' });
+				let nameFile = getNameFile(file.name);
+				console.log(nameFile);
 				for (let i=0; i<workbook.SheetNames.length; i++) {
 					memory['sheets'].push(workbook.SheetNames[i]);
 					memory['ws'].push(XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[i]], {header: 1}));
@@ -40,7 +42,7 @@ function excelToJSON() {
 				addNewDataToWS();
 				deleteUndefined();
 				// convertArrayToObject();
-				saveXlsxFile();
+				saveXlsxFile(nameFile);
 
 			})();
 		};
@@ -51,6 +53,11 @@ function excelToJSON() {
 	};
 }
 
+function getNameFile(arg) {
+	let n = arg.split('.');
+	n.splice(n.length-1, 1);
+	return n.join('.');
+}
 
 function createArray() {
 	console.log('log - sheets');
@@ -72,7 +79,7 @@ function createArray() {
 				// Удаляем слово, если предлог или число или одна буква
 				arrTmp_words = arrTmp_words.filter(function(f) {
 					if (predlogy.indexOf(f) == -1 && f.length > 1) {
-						for (let q=0; q<f.length; q++) { if (!isNaN(f[q]-0)) { return false; } }
+						// for (let q=0; q<f.length; q++) { if (!isNaN(f[q]-0)) { return false; } }
 						return true;
 					}
 				});
@@ -150,7 +157,7 @@ function createArrayMinus() {
 					for (let gg=0; gg<sheet2.length; gg++) {
 
 						// Если группы совпадают, значит пропускаем
-						if (gg == g) { break; }
+						if (ss == s && gg == g) { break; }
 
 						let group2 = sheet2[gg];
 						// перебираем фразы
@@ -162,6 +169,7 @@ function createArrayMinus() {
 							if (words.length != words2.length-1) { continue; }
 							let newElem = getNewElementBetween(words, words2);
 							if (newElem !== false) {
+								// console.log(s, g, w, newElem);
 								memory['minus'][s][g][w].push(newElem);
 							}
 						}
@@ -281,13 +289,13 @@ function convertArrayToObject() {
 }
 
 
-function saveXlsxFile() {
+function saveXlsxFile(nameFile) {
 	let newWorkbook = XLSX.utils.book_new();
 	for (let i=0; i<memory['sheets'].length; i++) {
 		let page = XLSX.utils.aoa_to_sheet(memory['ws'][i]);
 		XLSX.utils.book_append_sheet(newWorkbook, page, memory['sheets'][i]);
 	}
-	XLSX.writeFile(newWorkbook, 'file.xlsx');
+	XLSX.writeFile(newWorkbook, nameFile+' (minus).xlsx');
 }
 
 
@@ -308,10 +316,11 @@ async function loadFileLoop(table, num) {
 	time_part = performance.now();
 	await fetch('files/'+num+'.txt', { headers: { 'Content-Type':'text/plain; charset=utf-8' } })
 		.then( response => response.text() )
-		.then( text => {
+		.then( textResult => {
 			(async () => {
 				console.log('Получил file');
-				text = text.split('\r\n');
+				let text = textResult.split('\r\n');
+				if (text.length < 100) { text = textResult.split('\n'); }
 				let arr = [];
 				let arr_small = [];
 				for (let i=0; i<text.length; i++) {
