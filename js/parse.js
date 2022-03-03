@@ -78,10 +78,18 @@ function createArray() {
 				arrTmp_words = line[1].split(' ');
 				// Удаляем слово, если предлог или число или одна буква
 				arrTmp_words = arrTmp_words.filter(function(f) {
-					if (predlogy.indexOf(f) == -1 && f.length > 1) {
-						// for (let q=0; q<f.length; q++) { if (!isNaN(f[q]-0)) { return false; } }
+					if (predlogy.indexOf(f) == -1) {
+						if (!isNaN(f-0)) { return true; }
+						// Если строка
+						if (f.length <= 1) {
+							return (typeof f === "string" || f instanceof String) ? false : true;
+						}
 						return true;
 					}
+					// if (predlogy.indexOf(f) == -1 && f.length > 1) {
+					// 	// for (let q=0; q<f.length; q++) { if (!isNaN(f[q]-0)) { return false; } }
+					// 	return true;
+					// }
 				});
 			}
 			// Если есть название группы
